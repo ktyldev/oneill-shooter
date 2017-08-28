@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour {
     private ONeillObject _grav;
     private float xRot = 0;
 
+    private bool _grounded;
+
     void Start() {
         _rb = GetComponent<Rigidbody>();
         _cameraTransform = GetComponentInChildren<Camera>().transform;
@@ -31,11 +33,20 @@ public class PlayerController : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        _moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        _moveDirection = transform.TransformDirection(_moveDirection);
-        _moveDirection *= speed;
+        if (_grounded) {
+            var moveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+            moveDirection = transform.TransformDirection(moveDirection);
+            moveDirection *= speed;
+        
+            _rb.velocity = moveDirection;
+        }
+        
+        _rb.velocity += _grav.gravity * Time.deltaTime;
 
-        _rb.AddForce(_moveDirection * Time.deltaTime, ForceMode.VelocityChange);
-        _rb.AddForce(_grav.gravity * Time.deltaTime, ForceMode.Acceleration);
+        _grounded = false;
+    }
+
+    void OnCollisionStay(Collision collision) {
+        _grounded = true;        
     }
 }
